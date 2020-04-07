@@ -1,0 +1,8 @@
+---
+
+- name: "Install {{ tool }}"
+  file:
+    src: "{{ tool_src }}"
+    dest: "{{ tool_dest }}"
+    state: link
+    force: yes

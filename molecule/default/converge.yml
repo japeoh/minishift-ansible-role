@@ -1,0 +1,9 @@
+---
+- name: Converge
+  hosts: all
+  vars:
+    ansible_user: root # Required to add user to group in containers
+  roles:
+    - role: japeoh.minishift
+      vars:
+        minishift_install_dir: /usr/local/bin

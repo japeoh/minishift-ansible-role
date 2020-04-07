@@ -1,0 +1,70 @@
+---
+# tasks file for japeoh.minishift
+
+- name: Create directorys
+  file:
+    path: "{{ item }}"
+    state: directory
+  with_items:
+  - "{{ minishift_base_dir }}"
+  - "{{ minishift_install_dir }}"
+  - "{{ minishift_download_dir }}"
+
+- name: Install prerequisties
+  yum:
+    name:
+      - qemu-kvm
+      - libvirt
+      - virt-install
+      - libguestfs-tools
+    state: present
+  become: yes
+
+- name: Add user to libvirt group
+  user:
+    name: "{{ ansible_user }}"
+    groups: libvirt
+    append: yes
+  become: yes
+
+- import_tasks: download.yml
+  vars:
+    tool: kvm driver
+    tool_url: "{{ minishift_kvm_driver_url }}"
+    tool_dest: "{{ minishift_download_dir }}"
+    tool_checksum: "{{ minishift_kvm_driver_checksum }}"
+
+- import_tasks: install.yml
+  vars:
+    tool: kvm driver
+    tool_src: "{{ minishift_kvm_driver_binary }}"
+    tool_dest: "{{ minishift_kvm_driver_installation }}"
+
+- import_tasks: download.yml
+  vars:
+    tool: minishift
+    tool_url: "{{ minishift_url }}"
+    tool_dest: "{{ minishift_download_dir }}"
+    tool_checksum: "{{ minishift_checksum }}"
+
+- name: Unzip minishift
+  unarchive:
+    src: "{{ minishift_archive }}"
+    dest: "{{ minishift_download_dir }}"
+    extra_opts: --strip-components=1
+    creates: "{{ minishift_binary }}"
+
+- import_tasks: install.yml
+  vars:
+    tool: minishift
+    tool_src: "{{ minishift_binary }}"
+    tool_dest: "{{ minishift_installation }}"
+
+- name: Execute minishift version
+  command: "{{ minishift_installation }} version"
+  register: version
+  changed_when: false
+
+- name: "Validate correct minishift version installed"
+  assert:
+    that: minishift_version in version.stdout

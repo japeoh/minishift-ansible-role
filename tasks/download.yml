@@ -1,0 +1,8 @@
+---
+
+- name: "Download {{ tool }}"
+  get_url:
+    url: "{{ tool_url }}"
+    dest: "{{ tool_dest }}"
+    checksum: "{{ tool_checksum }}"
+    mode: u+rwx,g+rwx
